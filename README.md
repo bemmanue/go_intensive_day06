@@ -76,8 +76,15 @@ All additional files (images, css, js if you decide to use any of those)
 should be submitted as a zip file to be unpacked in the same directory as 
 binary itself, resulting into something like this:
 
-. ├── css │ └── main.css ├── images │ └── my_cat.png ├── js │ └──
-scripts.js └── myblog-binary
+```
+  ├── css 
+  │ └── main.css 
+  ├── images 
+  │ └── my_cat.png 
+  ├── js 
+  │ └── scripts.js 
+  └── myblog-binary
+```
 
 Admin credentials for posting access (login and password) and database 
 credentials (database name and user) should be submitted separately as well 
