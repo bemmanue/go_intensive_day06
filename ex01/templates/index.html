@@ -7,11 +7,13 @@
 <body>
     <header>Welcome to my blog!</header>
     <main>
-        <ul>
-            <li>First twit</li>
-            <li>Second twit</li>
-            <li>Third twit</li>
+        <ul>{{range .Msg}}
+            <li>{{.Message}}</li>
+            {{end}}
         </ul>
+        {{if .Previous}}<a href="/?page={{.Previous}}">Previous</a>{{end}}
+        {{if .Next}}<a href="/?page={{.Next}}">next</a>{{end}}
+        <a href="/?page={{.Last}}">Last</a>
     </main>
 </body>
 </html>
