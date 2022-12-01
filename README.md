@@ -77,12 +77,12 @@ should be submitted as a zip file to be unpacked in the same directory as
 binary itself, resulting into something like this:
 
 ```
-  ├── css 
-  │ └── main.css 
-  ├── images 
-  │ └── my_cat.png 
-  ├── js 
-  │ └── scripts.js 
+  ├── css
+  │ └── main.css
+  ├── images
+  │ └── my_cat.png
+  ├── js
+  │ └── scripts.js
   └── myblog-binary
 ```
 
