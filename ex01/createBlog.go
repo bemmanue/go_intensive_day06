@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	_ "github.com/lib/pq"
 	"html/template"
 	"log"
@@ -20,7 +19,8 @@ type Article struct {
 
 func main() {
 	driverName := "postgres"
-	dataSourceName := "user=bemmanue dbname=bemmanue sslmode=disable"
+	//dataSourceName := "user=bemmanue dbname=bemmanue sslmode=disable"
+	dataSourceName := "user=uliakulikova dbname=uliakulikova sslmode=disable"
 	var err error
 
 	db, err = sql.Open(driverName, dataSourceName)
@@ -44,23 +44,36 @@ func main() {
 }
 
 func showPage(w http.ResponseWriter, r *http.Request) {
-	limit, offset := 3, 0
+	var page, nextPage, prevPage int
+	var limit = 3
 
 	if strings.HasPrefix(r.URL.RawQuery, "page=") {
-		page, err := strconv.Atoi(strings.TrimPrefix(r.URL.RawQuery, "page="))
+		num, err := strconv.Atoi(strings.TrimPrefix(r.URL.RawQuery, "page="))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		offset = limit * (page - 1)
+		page = num
+	} else {
+		page = 1
 	}
 
-	articles := getArticles(limit, offset)
+	total := getCountOfArticles()
+	articles := getArticles(limit, limit*(page-1))
+
+	if page*limit < total {
+		nextPage = page + 1
+	} else {
+		nextPage = 0
+	}
+
+	prevPage = page - 1
 
 	data := struct {
 		Articles []Article
-		Next     string
-	}{Articles: articles, Next: "2"}
+		Next     int
+		Previous int
+	}{Articles: articles, Next: nextPage, Previous: prevPage}
 
 	tmpl, _ := template.ParseFiles("templates/index.html")
 
@@ -68,6 +81,18 @@ func showPage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func getCountOfArticles() int {
+	query := "SELECT count(*) FROM blog"
+	var total int
+
+	err := db.QueryRow(query).Scan(&total)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return total
 }
 
 func getArticles(limit, offset int) []Article {
@@ -104,5 +129,5 @@ func addArticle(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln(err)
 	}
 
-	fmt.Fprintln(w, "The article was successfully added")
+	http.ServeFile(w, r, "html/posting.html")
 }
