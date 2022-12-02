@@ -11,89 +11,98 @@ import (
 	"strings"
 )
 
-type Message struct {
+var db *sql.DB
+
+type Article struct {
 	Id      int
-	Message string
+	Article string
 }
 
 func main() {
-	http.HandleFunc("/", showBlog)
-	http.HandleFunc("/admin", postArticles)
-	http.HandleFunc("/publication", publishArticle)
-	http.HandleFunc("/?page=", getPage)
+	driverName := "postgres"
+	dataSourceName := "user=bemmanue dbname=bemmanue sslmode=disable"
+	var err error
+
+	db, err = sql.Open(driverName, dataSourceName)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	defer db.Close()
+
+	http.HandleFunc("/", showPage)
+	http.HandleFunc("/admin", postArticle)
+	http.HandleFunc("/posting", addArticle)
 
 	styleHandler := http.FileServer(http.Dir("./css"))
 	http.Handle("/css/", http.StripPrefix("/css", styleHandler))
 
-	err := http.ListenAndServe("localhost:8888", nil)
+	err = http.ListenAndServe("localhost:8888", nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func getPage(w http.ResponseWriter, r *http.Request) {
-	_, err := strconv.Atoi(strings.TrimPrefix(r.URL.RawQuery, "page="))
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+func showPage(w http.ResponseWriter, r *http.Request) {
+	limit, offset := 3, 0
 
-}
-
-func showBlog(w http.ResponseWriter, r *http.Request) {
-	connStr := "user=uliakulikova dbname=uliakulikova sslmode=disable"
-
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer db.Close()
-
-	rows, err := db.Query("SELECT * FROM blog ORDER BY id LIMIT 2 OFFSET 2")
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	var messages []Message
-
-	for rows.Next() {
-		p := Message{}
-		err := rows.Scan(&p.Id, &p.Message)
+	if strings.HasPrefix(r.URL.RawQuery, "page=") {
+		page, err := strconv.Atoi(strings.TrimPrefix(r.URL.RawQuery, "page="))
 		if err != nil {
-			fmt.Println(err)
-			continue
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
-		messages = append(messages, p)
+		offset = limit * (page - 1)
 	}
+
+	articles := getArticles(limit, offset)
 
 	data := struct {
-		Msg []Message
-	}{Msg: messages}
+		Articles []Article
+		Next     string
+	}{Articles: articles, Next: "2"}
 
 	tmpl, _ := template.ParseFiles("templates/index.html")
-	err = tmpl.Execute(w, data)
+
+	err := tmpl.Execute(w, data)
 	if err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func postArticles(w http.ResponseWriter, r *http.Request) {
+func getArticles(limit, offset int) []Article {
+	query := "SELECT * FROM blog ORDER BY id LIMIT " + strconv.Itoa(limit) +
+		" OFFSET " + strconv.Itoa(offset)
+
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	defer rows.Close()
+
+	var articles []Article
+	for rows.Next() {
+		article := Article{}
+		rows.Scan(&article.Id, &article.Article)
+		articles = append(articles, article)
+	}
+
+	return articles
+}
+
+func postArticle(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "html/admin.html")
 }
 
-func publishArticle(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, r.FormValue("message"))
+func addArticle(w http.ResponseWriter, r *http.Request) {
+	article := r.FormValue("article")
+	query := "insert into blog (article) values ('" + article + "')"
 
-	connStr := "user=uliakulikova dbname=uliakulikova sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
+	_, err := db.Exec(query)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer db.Close()
 
-	_, err = db.Exec("insert into blog (message) values ('" + r.FormValue("message") + "')")
-	if err != nil {
-		log.Fatalln(err)
-	}
+	fmt.Fprintln(w, "The article was successfully added")
 }
