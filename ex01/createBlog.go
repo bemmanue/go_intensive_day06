@@ -19,8 +19,7 @@ type Article struct {
 
 func main() {
 	driverName := "postgres"
-	//dataSourceName := "user=bemmanue dbname=bemmanue sslmode=disable"
-	dataSourceName := "user=uliakulikova dbname=uliakulikova sslmode=disable"
+	dataSourceName := "user=bemmanue dbname=bemmanue sslmode=disable"
 	var err error
 
 	db, err = sql.Open(driverName, dataSourceName)
