@@ -1,4 +1,4 @@
-module go_intensive/go_intensive_day06/ex01
+module blog
 
 go 1.18
 
