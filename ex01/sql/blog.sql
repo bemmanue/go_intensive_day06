@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS blog (
 
 SELECT * FROM blog;
 
-DROP TABLE blog;
+-- DROP TABLE blog;

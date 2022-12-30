@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq"
 	"html/template"
 	"log"
 	"net"
@@ -43,6 +44,9 @@ func main() {
 
 	styleHandler := http.FileServer(http.Dir("./css"))
 	http.Handle("/css/", http.StripPrefix("/css", styleHandler))
+
+	imageHandler := http.FileServer(http.Dir("./image"))
+	http.Handle("/image/", http.StripPrefix("/image", imageHandler))
 
 	s := &http.Server{
 		Addr:      "localhost:8888",

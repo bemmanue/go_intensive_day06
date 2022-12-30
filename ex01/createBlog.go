@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	_ "github.com/lib/pq"
 	"html/template"
 	"log"
 	"net/http"
@@ -18,7 +19,8 @@ type Article struct {
 
 func main() {
 	driverName := "postgres"
-	dataSourceName := "user=bemmanue dbname=bemmanue sslmode=disable"
+	//dataSourceName := "user=bemmanue dbname=bemmanue sslmode=disable"
+	dataSourceName := "user=uliakulikova dbname=uliakulikova sslmode=disable"
 	var err error
 
 	db, err = sql.Open(driverName, dataSourceName)
@@ -34,6 +36,9 @@ func main() {
 
 	styleHandler := http.FileServer(http.Dir("./css"))
 	http.Handle("/css/", http.StripPrefix("/css", styleHandler))
+
+	imageHandler := http.FileServer(http.Dir("./image"))
+	http.Handle("/image/", http.StripPrefix("/image", imageHandler))
 
 	err = http.ListenAndServe("localhost:8888", nil)
 	if err != nil {
