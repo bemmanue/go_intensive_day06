@@ -78,7 +78,7 @@ func (cw *ConnectionWatcher) Add(c int64) {
 }
 
 func showPage(w http.ResponseWriter, r *http.Request) {
-	if cw.Count() > 100 {
+	if cw.Count() > 2 {
 		w.WriteHeader(http.StatusTooManyRequests)
 		return
 	}
